@@ -1,0 +1,80 @@
+@charset "utf-8";/* CSS Document Dousong Junqu Write*/
+body{font-size:12px;line-height:1.8;font-family:tahoma,"宋体",Arial,serif;text-align:left;vertical-align:baseline;margin:0; padding:0; font-size:12px;}
+img{ border:0px;}
+div,table,tr,th,td,form,p,ul,li,dl,dt,dd,a,span,img{margin:0;padding:0;}
+table,tr,th,td,form,p{border:none 0;}
+ul,li{margin:0;padding:0;list-style:none;}
+dl,dt,dd{margin:0;padding:0;}
+img{border:none 0;}
+img,input,select{vertical-align:middle;}
+a{color:#06F;text-decoration:none;}
+a:hover{color:#C30;text-decoration:underline;}
+h1,h2,h3,h4,h5,h6{margin:0;padding:0;}
+h1{font-size:18px;border-bottom:1px solid #adcfea;margin:0 5px;}
+h4{font-size:12px;border-bottom:1px solid #ddd;margin:15px 0 5px 0;}
+.ml6{margin-left:6px;}
+.ml10{margin-left:10px;}
+.ml20{margin-left:20px;}
+.ml30{margin-left:30px;}
+.ml40{margin-left:40px;}
+.mt10{margin-top:10px;}
+.mt20{margin-top:20px;}
+.mt30{margin-top:30px;}
+.mt40{margin-top:40px;}
+.mb10{margin-bottom:10px;}
+.mb20{margin-bottom:20px;}
+.mb30{margin-bottom:30px;}
+.mb40{margin-bottom:40px;}
+.mtb15{margin:15px 0;}
+.ptb10{padding:10px 0;}
+.fl{float:left;}
+.fr{float:right;}
+.gray{color:#666;}
+.c_gray{color:#999;}
+.w100{width:100px;text-align:center;}
+.cl{clear:both;height:0;font-size:0;}
+table.Search tr th,table.Search tr td{vertical-align:middle;padding:5px;height:30px;}
+table.Search{border-collapse:collapse;}
+table.Tab{border-top:1px solid #adcfea;border-left:1px solid #adcfea;background-color:#fff;border-collapse:collapse;}
+table.Tab tr th,table.Tab tr td{padding:5px;border-right:1px solid #adcfea;border-bottom:1px solid #adcfea;height:30px;vertical-align:middle;}
+table.Tab tr th{font-weight:bold;background-color:#d9eafc;}
+table.Tab tr td a{padding:0 3px;}
+.pop{border:2px solid #06C;padding:10px;background-color:#fff;display:;}
+.pop table td{padding:5px;text-align:left;}
+.pop .close{text-align:right;height:24px;line-height:24px;border-bottom:1px solid #adcfea;margin-bottom:10px;}
+.b_line{border-bottom:1px solid #adcfea;}
+.t_line{border-top:1px solid #adcfea;}
+ul.list{margin:10px;font-size:14px;}
+ul.list li{text-indent:15px;border-bottom:1px solid #eee;line-height:36px;}
+ul.list li strong{color:#03F;padding:0 3px;}
+table.Search td,table.Search th,table.Tab td,table.Tab th,.pop table td,.pop table th{font-size:12px;}
+/*订单详情调用样式start*/
+table.b_border td{border-color:#A7A7A7;border-style:solid;border-width:0 2px 2px 0;vertical-align:top;}
+table.gray_solid{border-color:#DDDDDD;border-style:solid;border-width:1px 0 0 1px;margin:4px 0;text-align:center;}
+table.gray_solid td,table.gray_solid th{border-color:#DDDDDD;border-style:solid;border-width:0 1px 1px 0;text-align:center;vertical-align:middle;}
+table.gray_solid th{background-color:#F8F8F8;color:#666666;font-weight:400;text-align:center;}
+table.b_border{border-collapse:collapse;border-color:#A7A7A7;border-style:solid;border-width:2px 0 0 2px;margin:0;text-align:center;}
+table.none_border,table.none_border td{background:none repeat scroll 0 0 #FFFFFF;border:medium none;padding:3px 2px;text-align:left;}
+table.b_border h4{font-size:12px;}
+table.none_border td.b_line{border-bottom:1px solid #E6E6E6;}
+.f24{font-size:24px;}
+.c_orange{color:#CE2700;}
+table.none_border td.bLine2,.lineTB{border-bottom:2px solid #A7A7A7;}
+table.t_center td{padding:3px 2px;text-align:center;}
+.pad_10{padding:10px;}
+.t_left,.bz_box,.contact{text-align:left;}
+/*订单详情调用样式end*/
+
+
+.trTitle{ height:56px; width:100%;background:url(../images/header_bg.jpg);}
+.logo360{ font-size:24px; font-family:"微软雅黑"; font-weight:bolder; color:White; display:block; width:170px; padding-left:50px;}
+.tdPos{ height:30px;  font-size:12px; padding-left:10px;} 
+.tdPos a{ height:16px; padding:2px; color:#BF0000; font-weight:bolder; margin-left:5px;}
+#mainLeft{height:100%;background-color:#F9FCFF; font-size:12px; border-left:1px solid #7F97DB; border-right:1px solid #7F97DB;}
+.trBottom{height:20px; border:1px solid #7F97DB; border-bottom-width:0px; background-color:#F7F7F7; font-size:12px; color:red;}
+#browser{ padding-left:30px; padding-top:10px;}
+#thisPos{ color:blue;}
+#txtSearch{background-color:#F9FBFF;width:400px; border:1px solid #427A7C;}
+#btSearch{border:1px solid #CE9594;; color:#fff; background-color:#8f0000; height:22px; line-height:22px;cursor:pointer;}
+.r_links{ background-color: transparent !important; width:auto !important;}
+.r_links ul,.r_links li,.r_links li a,.r_links li span{ background-color: transparent !important; color:yellow;}

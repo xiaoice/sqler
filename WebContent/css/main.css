@@ -1,0 +1,24 @@
+@CHARSET "UTF-8";
+body{font-size:12px;font-family:tahoma,"宋体",Arial,serif;text-align:left;vertical-align:baseline;margin:0; padding:0; font-size:12px;}
+
+.edit_table {background-color: #bfd4e5; width: 100%; font-size: 12px}
+.edit_table thead th {text-align: left; background: url(../js/plugins/jquery-easyui/themes/default/images/datagrid_header_bg.gif) repeat-x scroll left bottom #FAFAFA; height: 28px; font-weight: bold}
+.edit_table tbody th {text-align: right; line-height: 28px; background-color: #fff; width: 120px; padding-right: 10px; height: 28px}
+.edit_table tbody td {text-align: left;white-space:nowrap;overflow:hidden; padding:0 4px 0 2px;height: 28px;}
+.edit_table tr {background: #fff;}
+.edit_table .combo-text{border-width: 0 !important;}
+.edit_table .tdLabel {text-align: right; line-height: 28px; background-color: #fff; width: 120px; padding-right: 10px; height: 28px; font-weight: bold}
+.edit_table .tdLabel80 {text-align: right; line-height: 28px; background-color: #fff; width: 80px; padding-right: 10px; height: 28px; font-weight: bold}
+.edit_table textarea{ width:83%; height: 30px;border:1px solid #ccc;}
+.edit_table input[type=text]{border:1px solid #ccc; width:200px; height:20px; line-height: 20px;}
+.edit_table input[type=checkbox]{border-width:0; width:auto; height:auto; line-height:normal;}
+.edit_table input[type=radio]{border-width:0; width:auto; height:auto; line-height:normal;}
+.edit_table select{ width:202px; height:24px; line-height: 24px;}
+.edit_table .combo-text{border-width: 0;}
+.edit_table .text_warn{color:#8f0000;padding:2px 5px;border-radius:3px;border:1px solid #8f0000;}
+
+.left{float: left;}
+.right{float: right;}
+.hide{display: none;}
+.border-shadow-img {box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);}
+.border-radius-5 { border-radius: 5px 5px 5px 5px;}
