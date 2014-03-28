@@ -4,10 +4,9 @@ import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
 
+import com.jspjs.framework.util.SysConfigHelper;
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
-import com.zte.framework.util.SysConfigHelper;
-import com.zte.user.domain.User;
 
 public class BaseAction extends ActionSupport {
 	protected Map<String,String> parameter;
@@ -64,30 +63,6 @@ public class BaseAction extends ActionSupport {
 	 */
 	public void setContextProperty(String key, Object value) {
 		ActionContext.getContext().put(key, value);
-	}
-	
-	/**
-	 * 获取User
-	 * @param key
-	 * @return
-	 */
-	public User getUser() {
-		User user =(User)getSessionProperty("user");
-		return user;
-	}
-	
-	/**
-	 * 获取UserId
-	 * @param key
-	 * @return
-	 */
-	public Integer getUserId() {
-		User user = (User)getSessionProperty("user");
-		if(user!=null){
-			return user.getId();
-		}else{
-			return null;
-		}
 	}
 	
 	/**

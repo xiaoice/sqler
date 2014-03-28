@@ -2,11 +2,12 @@ package com.jspjs.framework.util;
 
 import java.util.Map;
 
+import org.apache.catalina.User;
+
 import com.opensymphony.xwork2.Action;
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
-import com.zte.user.domain.User;
 
 public class UserAuthorityInterceptor extends AbstractInterceptor {
 	

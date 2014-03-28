@@ -4,18 +4,10 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sf.json.JSON;
-import net.sf.json.JSONObject;
-
 import org.springframework.beans.BeanUtils;
-
-import com.zte.user.domain.User;
 
 public class MapUtil {
 	
@@ -61,14 +53,5 @@ public class MapUtil {
         char[] items = fildeName.toCharArray();  
         items[0] = (char) (items[0] -32);  
         return new String(items);  
-    }
-    
-    @SuppressWarnings("unchecked")
-	public static void main(String[] agrs) throws Exception{
-    	User user=new User();
-    	Map<String,Object> map=MapUtil.fromObject(user);
-    	//Map<String,Object> map=JSONObject.fromObject(user);
-    	System.out.println(map);
-    	
     }
 }

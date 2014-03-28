@@ -4,9 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-
-import com.zte.framework.util.SysConfigHelper;
+import com.jspjs.framework.util.SysConfigHelper;
 
 public class BaseService1<T>  implements BaseMapper<T>{
 	private BaseMapper<T> baseMapper;
