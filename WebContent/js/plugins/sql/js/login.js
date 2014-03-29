@@ -42,9 +42,13 @@ define("login",[],function(require,exports,module){
 	$document.on("click","#bt_login_in",function(e){
 		//$("#input_con_database").val("");
 		message.wait("正在登录");
-		loginDatabase(function(){
-			tree.init();
-			dialog.window('close');
+		loginDatabase(function(result){
+			if(result.recode==1){
+				tree.init();
+				dialog.window('close');
+			}else{
+				message.error("连接失败！原因："+result.message,2);
+			}
 		});
 	});
 	

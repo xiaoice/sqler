@@ -58,8 +58,8 @@
 		<div id="menu_down_file">
 		    <div data-options="iconCls:'icon-plus'" id="menu_down_connection">新建连接</div>
 		    <div class="menu-sep"></div>
-		    <div>导入SQL文件</div>
-		    <div>导出Excel</div>
+		    <div class="undefined">导入SQL文件</div>
+		    <div class="undefined">导出Excel</div>
 		    <div class="menu-sep"></div>
 		    <div>注销</div>
 	    </div>
@@ -123,6 +123,15 @@
 	        <div iconCls="icon-search" id="context_table_open">打开表</div>
 	        <div iconCls="icon-edit" id="context_table_edit">修改表</div>
 	        <div iconCls="icon-list-alt" id="context_table_select">查看表结构</div>
+	        <div iconCls="icon-tasks" id="context_table_sql">  
+		        <span>生成SQL语句</span>  
+		        <div style="width:150px;">  
+		            <div id="context_table_sql_create">生成create语句</div>  
+		            <div id="context_table_sql_select">生成select语句</div>  
+		            <div id="context_table_sql_insert">生成insert语句</div>  
+		            <div id="context_table_sql_update">生成update语句</div>  
+		        </div>  
+		    </div>
 	        <div iconCls="icon-trash" id="context_table_delete">删除表</div>
 	        <div iconCls="icon-exchange" id="context_table_rename">重命名</div>
 	        <div class="menu-sep"></div>

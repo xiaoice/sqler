@@ -622,5 +622,84 @@ define(function(require,exports,module){
 	    }).datagrid('loadData', data);
 		dialog.window("open");
 	});
+	
+	//右键-生成SQL语句-生成create语句
+	$document.on("click","#context_table_sql_create",function(e){
+		var treeTable=target.tree("getSelected");
+		var sql="CREATE  TABLE\t"+treeTable.name+" (\n";
+		for(var i=0,j=treeTable.children.length;i<j;i++){
+			var row=treeTable.children[i].attributes;
+			sql+="\t"+row.Field+"\t"+row.Type;
+			//如果不能为空
+			if(row.Null=="NO"){
+				sql+="\t"+"NOT NULL";
+			}
+			
+			//如果自增
+			if(row.Extra=="auto_increment"){
+				sql+="\t"+"AUTO_INCREMENT";
+			}
+			
+			//如果是主键
+			if(row.Key=="PRI"){
+				sql+="\t"+"PRIMARY KEY";
+			}
+			
+			//如果是最后一行，则不输入【,】
+			if(i==j-1){
+				sql+="\n";
+			}else{
+				sql+=",\n";
+			}
+		}
+		sql+=")";
+		$("#sql_text").val(sql.toUpperCase());
+		$("#sql_tabs").tabs("select",'命令提示行');
+	});
+	
+	//右键-生成SQL语句-生成select语句
+	$document.on("click","#context_table_sql_select",function(e){
+		var treeTable=target.tree("getSelected");
+		var fields=[],values=[];
+		for(var i=0,j=treeTable.children.length;i<j;i++){
+			var row=treeTable.children[i].attributes;
+			fields.push("\t"+row.Field);
+			values.push("\t''");
+		}
+		var sql="SELECT\t\n"+fields.join(" ,\n")+"\nFROM "+treeTable.name+"\nlimit 20";
+		$("#sql_text").val(sql.toUpperCase());
+		$("#sql_tabs").tabs("select",'命令提示行');
+	});
+	//右键-生成SQL语句-生成insert语句
+	$document.on("click","#context_table_sql_insert",function(e){
+		var treeTable=target.tree("getSelected");
+		var fields=[],values=[];
+		for(var i=0,j=treeTable.children.length;i<j;i++){
+			var row=treeTable.children[i].attributes;
+			fields.push("\t"+row.Field);
+			values.push("\t''");
+		}
+		var sql="INSERT  INTO  "+treeTable.name+" (\n";
+		sql+=fields.join(" ,\n")+"\n)\n values(\n"+values.join(" ,\n")+"\n)";
+		$("#sql_text").val(sql.toUpperCase());
+		$("#sql_tabs").tabs("select",'命令提示行');
+	});
+	
+	//右键-生成SQL语句-生成insert语句
+	$document.on("click","#context_table_sql_update",function(e){
+		var treeTable=target.tree("getSelected");
+		var fields=[];
+		for(var i=0,j=treeTable.children.length;i<j;i++){
+			var row=treeTable.children[i].attributes;
+			fields.push("\t"+row.Field+"= ''");
+		}
+		var sql="UPDATE  "+treeTable.name+" SET \n";
+		sql+=fields.join(" ,\n")+"  \nWHERE 1=2";
+		$("#sql_text").val(sql.toUpperCase());
+		$("#sql_tabs").tabs("select",'命令提示行');
+	});
+	
+	
+	
 	module.exports.target=target;
 });
