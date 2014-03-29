@@ -14,7 +14,7 @@ import org.apache.struts2.ServletActionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import com.jspjs.framework.util.AjaxAction;
+import com.jspjs.framework.ajax.AjaxAction;
 import com.jspjs.sqler.dto.JdbcDto;
 import com.jspjs.sqler.service.MySqlConnection;
 
