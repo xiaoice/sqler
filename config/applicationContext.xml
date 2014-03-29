@@ -8,51 +8,6 @@
         http://www.springframework.org/schema/aop 
         http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
     
-<!-- 	<bean id="sysCfgHelper" class="com.jspjs.framework.util.SysConfigHelper">
-	    <property name="attributes">
-			<map><entry key="test" value="abc"/></map>
-	    </property>	    
-    </bean> -->
     <context:component-scan base-package="com.jspjs"/>
-    <context:property-placeholder location="classpath:jdbc.properties"/>
-    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">  
-    	<property name="driverClassName" value="${jdbc.driverClassName}" />  
-    	<property name="url" value="${jdbc.url}" />  
-	</bean>
-	
-	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<property name="dataSource" ref="dataSource" />
-		<property name="configLocation" value="classpath:SqlMapConfig.xml" />
-		<!-- <property name="mapperLocations"  value="classpath*:com/jspjs/*/mapper/*.xml" /> -->
-	</bean>
-	
-	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
-        <constructor-arg index="0" ref="sqlSessionFactory" />
-    </bean>
-    
-<!-- 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<property name="dataSource" ref="dataSource" />
-		<property name="configLocation" value=""/>
-			该属性用来指定MyBatis的XML配置文件路径,跟Spring整合时，编写MyBatis映射文件的目的无非是配置一下typeAlias、setting之类的
-			元素。不用在其中指定数据源，或者事务处理方式。就算配置了也会被忽略。因为这些都是使用Spring中的配置
-			。当然如果你不打算添加typeAlias 之类的设置的话，你连MyBatis的配置文件都不用写，更不用配置这个属性了
-		<property name="mapperLocations" value="src/UserMapper.xml"/>
-		该配置文件用来指定Mapper映射文件的位置 ，如果映射文件与相应的接口同名，且在同一路径下，那么可以不配置该选项
-	</bean> -->
 
-	<!--注册Mapper方式一 
-	<bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean"> 
-		<property name="mapperInterface" value="com.jspjs.user.maper.UserMapper"/>
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/> 
-	</bean>
-	-->
-
-	<!-- 注册Mapper方式二：也可不指定特定mapper，而使用自动扫描包的方式来注册各种Mapper ，配置如下：-->
- 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.jspjs.*" />
-	</bean>
-
-	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-		<property name="dataSource" ref="dataSource" /> 
-	</bean>
 </beans>

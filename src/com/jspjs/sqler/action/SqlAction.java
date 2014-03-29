@@ -10,8 +10,6 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.struts2.ServletActionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,14 +22,7 @@ import com.jspjs.sqler.service.MySqlConnection;
 public class SqlAction extends AjaxAction {
 	@Autowired
 	private MySqlConnection mySqlConnection;
-	@Autowired
-	private SqlSessionFactory sqlSessionFactory;
 	Connection conn=null;
-	
-	//获取数据库连接
-	public SqlSession getSqlSession(){
-		return sqlSessionFactory.openSession();
-	}
 	
 	//主页
 	public String index(){

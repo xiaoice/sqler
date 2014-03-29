@@ -11,24 +11,9 @@ import java.util.List;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Controller;
 @Controller("mySqlConnection")
 public class MySqlConnection extends SqlConnection{
-	
-	
-	/**
-	 * 使用当前系统ibatis的连接获取库中所有的表
-	 * @param table
-	 * @return
-	 * @throws SQLException 
-	 */
-	public List<String> findTables() throws SQLException {
-		SqlSession sqlSession=getSqlSession();
-		List<String> resultList = findTables(sqlSession.getConnection());
-		closeSqlSession(sqlSession);
-		return resultList;
-	}
 	
 	/**
 	 * 使用指定的连接名获取库中所有的库
@@ -67,18 +52,6 @@ public class MySqlConnection extends SqlConnection{
 		}
 		stmt.close();
 		resultSet.close();
-		return resultList;
-	}
-	
-	/**
-	 * 使用当前系统ibatis的连接获取表名下所有的列
-	 * @param table
-	 * @return
-	 */
-	public JSONArray findTableColumnInfo(String table) {
-		SqlSession sqlSession=getSqlSession();
-		JSONArray resultList = findTableColumnInfo(sqlSession.getConnection(), table);
-		closeSqlSession(sqlSession);
 		return resultList;
 	}
 	

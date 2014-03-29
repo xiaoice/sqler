@@ -2,7 +2,7 @@ package com.jspjs.framework.util;
 
 import java.util.List;
 
-public class Page<T> {
+public class Page1<T> {
 	private int pageIndex = 0;// 当前第几页
 	private int pageSize = 0; // 每页显示多少条数据
 	private int pageNum = 0; // 当前页有多少数据
@@ -12,11 +12,11 @@ public class Page<T> {
 	private int numTotal; // 总共有多少条数据
 	private List<T> list; // 列表
 
-	public Page() {
+	public Page1() {
 		
 	}
 
-	public Page(int pageIndex, int pageSize, List<T> list, int numTotal) {
+	public Page1(int pageIndex, int pageSize, List<T> list, int numTotal) {
 		this.pageIndex = pageIndex;
 		this.pageSize = pageSize;
 		this.list = list;
