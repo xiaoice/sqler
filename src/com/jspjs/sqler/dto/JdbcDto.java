@@ -1,12 +1,14 @@
 package com.jspjs.sqler.dto;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 @Component("jdbcDto")
-public class JdbcDto {
-    private String driver;
+public class JdbcDto implements Serializable {
+	private static final long serialVersionUID = -594370196014833241L;
+	private String driver;
     private String ip;
     private String port;
     private String database;
@@ -27,9 +29,9 @@ public class JdbcDto {
     
     public String getUrl(){
         if(StringUtils.isNotBlank(database)){
-        	return "jdbc:mysql://"+ip+":"+port+"/"+database+"?useUnicode=true&amp;characterEncoding="+chatset;
+        	return "jdbc:mysql://"+ip+":"+port+"/"+database+"?useUnicode=true&amp;allowMultiQueries=true&amp;characterEncoding="+chatset;
         }else{
-        	return "jdbc:mysql://"+ip+":"+port;
+        	return "jdbc:mysql://"+ip+":"+port+"?useUnicode=true&amp;allowMultiQueries=true&amp;characterEncoding="+chatset;
         }
     }
 

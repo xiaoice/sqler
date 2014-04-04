@@ -118,20 +118,37 @@ public class MySqlConnection extends SqlConnection{
 	
 	//获取表中所有数据
 	public JSONArray findTableDatas(Connection conn,String sql) throws SQLException {
+		return this.findTableDatas(conn, sql, null);
+	}
+	//获取表中所有数据
+	public JSONArray findTableDatas(Connection conn,String sql,JSONArray fields) throws SQLException {
 		JSONArray resultList=new JSONArray();
 		Statement stmt=conn.createStatement();
 		ResultSet resultSet=stmt.executeQuery(sql);
 	    String[] columns=findTableColumn(conn, sql);
+	    
 		// 获取集中数据  
 		while (resultSet.next()) {  
 			JSONObject jo=new JSONObject();
 			for (int i = 0; i < columns.length; i++) {
 				String key=columns[i], value=resultSet.getString(columns[i]);
 				if(value==null){
-					jo.accumulate(key,"<i>null<i>");
+					jo.accumulate(key,"");
 				}else{
 					jo.accumulate(key,value);
 				}
+				//若列数组不为null
+				/*if(fields!=null){
+					JSONObject field=fields.getJSONObject(i);
+					String type=field.getString("Type");
+					if(type.toLowerCase().indexOf("time")>-1){
+						int index=value.lastIndexOf(".");
+						if(value.length()>index){
+							jo.put(key,value.substring(0, index));
+						}
+					}
+				}
+				*/
 			}
 			resultList.add(jo);
 		}
@@ -175,7 +192,7 @@ public class MySqlConnection extends SqlConnection{
 				for (int i = 0; i < columns.length; i++) {
 					String key=columns[i], value=resultSet.getString(columns[i]);
 					if(value==null){
-						jo.accumulate(key,"<i>null<i>");
+						jo.accumulate(key,"");
 					}else{
 						jo.accumulate(key,value);
 					}
@@ -205,6 +222,26 @@ public class MySqlConnection extends SqlConnection{
 		JSONObject result=new JSONObject();
 		Statement stmt=conn.createStatement();
 		result.accumulate("result", stmt.executeUpdate(sql));
+		stmt.close();
+		return result;
+	}
+	
+	/**
+	 * 批量执行更新Sql
+	 * @param conn
+	 * @param sql
+	 * @throws SQLException 
+	 */
+	public JSONObject executeSqlBatch(Connection conn,String sql) throws SQLException {
+		JSONObject result=new JSONObject();
+		sql=sql.replace("\n","").replace("\t","");
+		//conn.setAutoCommit(false);
+		Statement stmt=conn.createStatement();
+		String sqls[]=sql.split(";");
+		for(String s : sqls){
+			stmt.addBatch(s);
+		}
+		result.accumulate("result", stmt.executeBatch());
 		stmt.close();
 		return result;
 	}

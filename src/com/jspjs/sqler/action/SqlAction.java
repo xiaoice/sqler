@@ -1,9 +1,11 @@
 package com.jspjs.sqler.action;
 
+import java.net.URLDecoder;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import net.sf.json.JSONArray;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import com.jspjs.framework.ajax.AjaxAction;
 import com.jspjs.sqler.dto.JdbcDto;
 import com.jspjs.sqler.service.MySqlConnection;
+import com.opensymphony.xwork2.ActionContext;
 
 @Controller("sqlAction")
 public class SqlAction extends AjaxAction {
@@ -45,6 +48,9 @@ public class SqlAction extends AjaxAction {
 				setSessionProperty("jdbc", jdbc);
 			}else{
 				jdbc = (JdbcDto) getSessionProperty("jdbc");
+				if(jdbc==null){
+					jdbc=getJdbcFromCookie();
+				}
 				if(StringUtils.isNotBlank(database)){
 					jdbc.setDatabase(database);
 					setSessionProperty("jdbc", jdbc);
@@ -54,12 +60,30 @@ public class SqlAction extends AjaxAction {
 				throw new SQLException("请先登录!");
 			}
 			conn = mySqlConnection.getConnection(jdbc);
+			//参数置空
 			parameter=null;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			throw new SQLException(e.getMessage(),e);
 		}
 		return conn;
+	}
+	
+	//针对部分平台（SAE）经常出现session读取异常，改用cookie读取
+	public JdbcDto getJdbcFromCookie(){
+		JdbcDto jdbc=null;
+		Cookie[] cookies = ServletActionContext.getRequest().getCookies();
+		for(Cookie cookie : cookies){
+			String name = cookie.getName();
+			if(name.equalsIgnoreCase("jdbc")){
+				String value=cookie.getValue();
+				value=URLDecoder.decode(value);
+				jdbc=new JdbcDto(JSONObject.fromObject(value));
+				break;
+			}
+			
+		}
+		return jdbc;
 	}
 	
 	//测试连接数据库
@@ -122,12 +146,16 @@ public class SqlAction extends AjaxAction {
 		String sql=request.getParameter("sql");
 		try{
 			conn=getConnection();
+			
 			String sqlCount="select count(1) from "+sql+" as temp";
+			//获取列信息
+			JSONArray fields = mySqlConnection.findTableColumnInfo(conn, sql);
+			
 			Integer pageIndex=Integer.valueOf(request.getParameter("page"));
 			Integer pageSize=Integer.valueOf(request.getParameter("rows"));
 			Integer total = mySqlConnection.findTableCount(conn, sqlCount);
 			sql="select * from "+sql+" limit "+(pageIndex-1)*pageSize+","+pageSize;
-			JSONArray rows = mySqlConnection.findTableDatas(conn, sql);
+			JSONArray rows = mySqlConnection.findTableDatas(conn, sql,fields);
 			JSONObject j=new JSONObject();
 			j.accumulate("rows", rows);
 			j.accumulate("total", total);
@@ -231,6 +259,22 @@ public class SqlAction extends AjaxAction {
 		}
 	}
 	
+	//批量更新表中数据
+	public String executeSqlBatch(){
+		HttpServletRequest request=ServletActionContext.getRequest();
+		String sql=request.getParameter("sql");
+		try{
+			conn=getConnection();
+			JSONObject result = mySqlConnection.executeSqlBatch(conn, sql);
+			return ajaxUtil.setSuccess(result);
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return ajaxUtil.setFail(e.getMessage());
+		}finally{
+			mySqlConnection.closeConnection(conn);
+		}
+	}
+	
 	//格式化database
 	private JSONArray formatDatabaseName(List<String> list){
 		JSONArray tablesArray=new JSONArray();
@@ -272,16 +316,42 @@ public class SqlAction extends AjaxAction {
 	private JSONArray formatTableColumnDatagrid(JSONArray array){
 		JSONArray tablesArray=new JSONArray();
 		for(int i=0;i<array.size();i++){
+			//"Type":"smallint(5) unsigned"
+			
 			JSONObject column=(JSONObject)array.get(i);
 			JSONObject j=new JSONObject();
 			String value=(String) column.get("Field");
+			j.accumulate("typeSize", column.get("Type"));
 			j.accumulate("field", value);
 			j.accumulate("title", value);
 			j.accumulate("width", "100");
 			//j.accumulate("sortable", true);
+			//分解type、size
+			getTypeSize(j);
 			tablesArray.add(j);
 		}
 		return tablesArray;
+	}
+	
+	private void getTypeSize(JSONObject j){
+		String typeSize=j.getString("typeSize");
+		if(StringUtils.isNotBlank(typeSize)){
+			//"smallint(5) unsigned"
+			int start=typeSize.indexOf("(");
+			if(start>-1){
+				int end=typeSize.indexOf(")");
+				String type=typeSize.substring(0, start);
+				String size=typeSize.substring(start+1, end);
+				j.accumulate("type", type);
+				j.accumulate("size", size);
+				//是否包含非负数
+				if(typeSize.indexOf("unsigned")>-1){
+					j.accumulate("unsigned", true);
+				}
+			}else{
+				j.accumulate("type", typeSize);
+			}
+		}
 	}
 	
 	//格式化table的column
