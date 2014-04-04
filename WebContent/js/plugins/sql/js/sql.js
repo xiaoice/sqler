@@ -474,10 +474,9 @@ define(function(require,exports,module){
 		var updateSql=getUpdateSqls(option.updated,treeTable.name);
 		var insertSql=getinsertSqls(option.insertd,treeTable.name);
 		var deleteSql=getdeleteSqls(option.deleted,treeTable.name);
-		sqls.push(updateSql);
-		sqls.push(insertSql);
-		sqls.push(deleteSql);
-		//var sql=updateSql+insertSql+deleteSql;
+		updateSql!=""&&sqls.push(updateSql);
+		insertSql!=""&&sqls.push(insertSql);
+		deleteSql!=""&&sqls.push(deleteSql);
 		var sql=sqls.join(";");
 		if(sql!=""){
 			$.post("sql/executeSqlBatch.action",{"sql":sql},function(result){
