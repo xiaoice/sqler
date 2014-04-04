@@ -2,26 +2,7 @@ package com.jspjs.sqler.service.impl;
 
 import net.sf.json.JSONObject;
 
-import org.apache.ibatis.session.SqlSession;
-
 public interface SqlConnectionable {
-	/**
-	 * 获取连接
-	 * @return
-	 */
-	public SqlSession getSqlSession();
-	
-	/**
-	 * 关闭连接
-	 * @param sqlSession
-	 */
-	public void closeSqlSession(SqlSession sqlSession);
-	
-	/**
-	 * 是否已经连接？
-	 * @return
-	 */
-	public boolean isConnected();
 	
 	/**
 	 * 查找所有表
