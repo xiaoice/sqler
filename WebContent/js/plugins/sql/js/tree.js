@@ -57,7 +57,7 @@ define(function(require,exports,module){
 				target.tree("select", node.target);
 			},
 			onBeforeSelect:function(node){
-				$("#input_con_database").val(node.text);
+				//$("#input_con_database").val(node.text);
 				if(databaseSelect.html()!=node.text&&node.type=="database"){
 					login.loginDatabase(function(){
 						message.ok("成功切换到数据库【"+node.text+"】",0.5);

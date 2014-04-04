@@ -66,6 +66,8 @@ body{overflow: hidden;}
 .dataBaseTree .tree-folder-open ,.dataBaseTree .tree-folder,.dataBaseTree .tree-file{background-image: none;}
 .dataBaseTree .tree-file{color:#86E05D;}
 .dataBaseTree .tree-title{-moz-user-select:none;-khtml-user-select:none;user-select:none;}
+.dataBaseTree .tree-title .tree-editor{border-color: #FF9800;margin:0;height:18px !important;padding:0 2px;}
+
 .pagination-loading,.datagrid-mask-msg{background-image: url('../images/loading_black.gif');}
 .pagination-loading{ border-radius: 4px;}
 .panel-header{border-bottom-width: 0 !important;}
@@ -124,8 +126,16 @@ body{overflow: hidden;}
 .database_select{background-color: #155817;border: 1px solid #00EB2C;border-radius: 3px;color:#fff;margin-left: 5px;padding: 2px 5px;}
 .database_select:hover{background-color: #4F3207; border: 1px solid #FF9800;cursor: pointer;}
 
+/*重写easyui样式*/
+.window-proxy{border-radius:7px; background-color: rgba(5, 45, 164, 0.5) !important;filter:alpha(opacity=50); -moz-opacity:0.5;-khtml-opacity: 0.5; opacity:0.5;}
+.datagrid-editable .datagrid-editable-input{border-color:#C49A53 !important;}
+.datagrid-editable td input[type=text],.datagrid-editable td .combo{height: 24px !important;width:100%;background-color:#FFF4E1; border-color:#C49A53;}
+.datagrid-editable .numberbox-f{background-color: #EEFFEF !important;border-color:#B3F1AE !important;}
 
-
+/*datagrid编辑框样式*/
+.datagrid_editable_row_warp{position: absolute; top: 51px; left: 0; z-index: 1; margin-left:11px; height: 25px; width: auto;text-align: left;}
+.datagrid_editable_row_warp .button{background-color: #9CFB9E;cursor:pointer;border: 1px solid #167A05;border-radius: 3px;box-shadow: 1px 1px 0 #40C23F;color: #086700;font-size: 12px;padding: 3px 10px;margin-left: 15px;}
+.datagrid_editable_row_warp .button:hover{text-decoration:none;background-color: #00A204;border: 1px solid #14FF00;box-shadow: 1px 1px 0 #0D9D0B;color: #fff;}
 
 
 

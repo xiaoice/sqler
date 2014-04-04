@@ -84,6 +84,16 @@ define(function(require,exports,module){
     			 callback();
     		 }
     	 };
+    	 /*
+    	  * 显示消息框
+    	  * type 类型："ok","error","warn","info","stop","hide","wait"
+    	  * text 显示的文本值
+    	  * callback 超时时间或者回调函数
+    	  * callbacks 回调函数
+    	  */
+    	 this.show=function(type,text,callback,callbacks){
+    		 this[type](text,callback,callbacks);
+    	 };
     	 //关闭消息框
     	 this.hide=function(callback){
     		 $("#body_message_sql").remove();

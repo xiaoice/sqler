@@ -10,6 +10,7 @@ seajs.config({
     "font-awesome": "plugins/bootstrap/css/font-awesome.css",
     "easyuiCss-black": "plugins/jquery-easyui/themes/black/easyui.css",
     "easyui": "plugins/jquery-easyui/jquery.easyui.min.js",
+    "my97": "plugins/my97/WdatePicker.js",
     "message": "plugins/sql/js/message.js",
     "messageCss": "plugins/sql/css/message.css",
     "layout": "plugins/sql/js/layout.js",
@@ -18,6 +19,8 @@ seajs.config({
     "login": "plugins/sql/js/login.js",
     "util": "plugins/sql/js/util.js",
     "sql": "plugins/sql/js/sql.js",
+    "cookie": "plugins/sql/js/cookie.js",
+    "easyui-extend": "plugins/sql/js/easyui-extend.js",
     "table": "plugins/sql/js/table.js"
   },
   preload: [

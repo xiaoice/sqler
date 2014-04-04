@@ -7,9 +7,198 @@
 define(function(require,exports,module){
 	var util=require("util"),message=util.message;
 	var $document=$(document);
+	var editIndex = undefined; //当前编辑的行索引
+	var editRows={},delRows={};//修改的行、删除的行
 	module.exports.init=function(callback){
 		
 	};
+    
+	//结束编辑状态
+	function endEditing(){
+		if (editIndex == undefined){return true;}
+		var datagrid=$(".sql_table_data .table_datagrid");
+		if (datagrid.datagrid('validateRow', editIndex)){
+			datagrid.datagrid('endEdit', editIndex);
+			editIndex = undefined;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	//修改行
+	function editRow(rowIndex,newRow){
+		var datagrid=$(".sql_table_data .table_datagrid"),datagridView=$(".sql_table_data .datagrid-view");
+		//移除以前的dom
+		/*$(".sql_table_data .datagrid_editable_row_warp").remove();
+		var datagridEditable=$("<div class='datagrid_editable_row_warp'></div>").css("top",51+25*rowIndex).appendTo(datagridView);
+		var $btOk=$("<a class='button'>确定</a>").appendTo(datagridEditable),$btCancel=$("<a class='button'>取消</a>").appendTo(datagridEditable);
+		*/
+		
+		if(endEditing()){
+			datagrid.datagrid('endEdit', editIndex);
+			datagrid.datagrid('selectRow', rowIndex).datagrid('beginEdit', rowIndex);
+			editIndex=rowIndex;
+		}else{
+			datagrid.datagrid('selectRow', rowIndex);
+		}
+	}
+	
+	//清空缓存
+	function clearCacheData(){
+		var datagrid=$(".sql_table_data .table_datagrid");
+		//清空更新数据缓存
+    	datagrid.data("datagrid")._updatedRows=[];
+    	//提交数据状态到datadird
+		datagrid.datagrid("acceptChanges");
+	}
+	
+	//获取选中表的主键列表  TODO
+	function getPrimarys(){
+		var primarys=[];
+		var treeTable=$('.dataBaseTree').tree("getSelected");
+		for(var i=0,j=treeTable.children.length;i<j;i++){
+			var field=treeTable.children[i];
+			if(field.iconCls=="icon-key"){
+				primarys.push(field.name);
+			}
+		}
+		return primarys;
+	}
+	
+	//根据数据字段类型获取单元格编辑器类型
+	function getEditorType(type){
+		if(/int/ig.test(type)){
+			return "numberbox";
+		}else if(/char/ig.test(type)){
+			return "textbox";
+		}else if(/datatime/ig.test(type)){
+			return "my97";
+		}else if(/time/ig.test(type)){
+			return "datetimebox";
+		}else{
+			return "textbox";
+		}
+	}
+	
+	
+	//数组是否存在指定元素
+	function isExistInArray(array,val){
+		for(var i=0,j=array.length;i<j;i++){
+			if(array[i]===val){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	//从datagrid获取修改后的sql列表
+	function getUpdateSqls(array,table){
+		var sqls=[];
+		for(var i=0,j=array.length;i<j;i++){
+			var originalRow=array[i].originalRow,rowData=array[i].rowData,fields=[],wheres=[];
+			
+			//组合set字段
+			for(var field in rowData){
+				var value=rowData[field];
+				if(value!=""){
+					value="'"+value+"'";
+					fields.push(field+"="+value);
+				}
+			}
+			
+			//组合where条件字段
+			for(var field in originalRow){
+				var value=originalRow[field];
+				if(value!=null){
+					value="'"+value+"'";
+					wheres.push(" "+field+"="+value);
+				}
+			}
+			
+			var sql=" update "+table+" set "+fields.join(" , ");
+			if(wheres.length>0){
+				sql+=" where "+wheres.join(" and ")+"limit 1";
+			}
+			sqls.push(sql);
+		}
+		return sqls.join(";");
+	}
+	
+	//从datagrid获取新增后的sql列表
+	function getinsertSqls(array,table){
+		var sqls=[];
+		for(var i=0,j=array.length;i<j;i++){
+			var field=array[i],fields=[],wheres=[];
+			for(var key in field){
+				var value=field[key];
+				if(value!=null){
+					value="'"+value+"'";
+				}else{
+					value=null;
+				}
+				
+				fields.push(key);
+				wheres.push(value);
+			}
+			
+			var sql=" insert into "+table+"("+fields.join(",")+") values ("+wheres.join(",")+")";
+			sqls.push(sql);
+		}
+		return sqls.join(";");
+	}
+	
+	//从datagrid获取删除后的sql列表
+	function getdeleteSqls(array,table){
+		var sqls=[];
+		for(var i=0,j=array.length;i<j;i++){
+			var field=array[i],wheres=[];
+			for(var key in field){
+				var value=field[key];
+				if(value!=null){
+					value="'"+value+"'";
+					wheres.push(key+"="+value);
+				}
+			}
+			
+			var sql=" delete from "+table+" where "+wheres.join(" and ")+"limit 1";
+			sqls.push(sql);
+		}
+		return sqls.join(";");
+	}
+	
+	//获取批量操作结果
+	function getBatchResult(result){
+		var tip={message:"",type:"info"};
+		if(result.recode==1){
+			var array=result.data.result;
+			if($.isArray(array)){
+				var errors=[],oks=[];
+				for(var i=0,j=array.length;i<j;i++){
+					if(array[i]==1){
+						oks.push(array[i]);
+					}else{
+						errors.push(array[i]);
+					}
+				}
+				if(oks.length>0&&errors==0){
+					tip.message="命令执行成功；"+oks.length+"条数据受影响！";
+					tip.type="ok";
+				}else if(oks.length==0&&errors>0){
+					tip.message="命令执行失败；"+errors.length+"条数据受影响！";
+					tip.type="error";
+				}else{
+					tip.message="命令执行完毕；"+oks.length+"条数据成功！"+errors.length+"条数据失败！";
+				}
+			}else{
+				tip.message="操作失败！返回结果异常！";
+				tip.type="error";
+			}
+		}else{
+			tip.message=result.message;
+		}
+		return tip;
+	}
 	
 	//运行Sql
 	$document.on("click","#btn_run",function(e){
@@ -20,20 +209,102 @@ define(function(require,exports,module){
 		executeTable($(".exe_result_list"),sql,1,100);
 	});
 	
+	//验证数据是否可以被添加缓存数组  rows 原始数据数组，rowData新数据
+	function checkedUpdateRows(rows,dataRow){
+		if($.isEmptyObject(dataRow.rowData)){
+			return false;
+		}
+		if(rows.length==0){
+			return true;
+		}
+		for(var i=0,j=rows.length;i<j;i++){
+			var row=rows[i];
+			//验证2个对象是否相同
+			if(equals(row.originalRow,dataRow.originalRow)){
+				//时间类型会自动去掉后面的【.0】,追加【.0】验证数据是不是一样
+				for(var r in row.rowData){
+					if(row.originalRow[r]==row.rowData[r]){
+						continue;
+					}
+					else if(row.originalRow[r]==row.rowData[r]+".0"){
+						continue;
+					}else{
+						rows.splice(i,1);
+						return true;
+					}
+				}
+				return false;
+			}
+			return true;
+		}
+	}
+	
 	//打开表自动生成Sql调用的
 	function selectTable(that,sql,callback){
 		if(that.find(".table_datagrid").size()==0){
 			that.find(".result_table").html(createTable());
 		}
-		var datagrid=that.find(".table_datagrid");
-		var treeTable=$('.dataBaseTree').tree("getSelected");
+		var datagrid=that.find(".table_datagrid"),treeTable=$('.dataBaseTree').tree("getSelected");
+		for(var i=0,j=treeTable.columns.length;i<j;i++){
+			var field=treeTable.columns[i];
+			field.editor=getEditorType(field.type)||"textbox";
+			if(/time/ig.test(field.editor)){
+				field.formatter=function(val,row){
+					if(typeof val!="undefined"){
+						return val.replace(".0","");
+					}
+					return val;
+				};
+			}else{
+				field.formatter=function(val,row){
+					return $.isEmptyObject(val)?"<i>null<i>":val;
+				};
+			}
+		}
+        
 		datagrid.datagrid({
 	        url:"sql/findTableData.action",
 	        queryParams: {"sql":sql},
 	        columns:[treeTable.columns],
 	        height:$(that).height(),
 	        remoteSort:false,
+	        //singleSelect:false,
 	        loadMsg:"正在加载，请稍后...",
+	        //loadMsg:"",
+	        onClickRow: editRow,
+	        onAfterEdit:function(rowIndex, rowData, changes){
+	        	var datagridData=datagrid.data("datagrid");
+	        	//原始数据row
+	        	var originalRow=datagridData.originalRows[rowIndex];
+	        	//若没有原始数据，则说明是新增操作
+	        	if(typeof originalRow=="undefined"){
+	        		return;
+	        	}
+	        	if(typeof datagridData._updatedRows=="undefined"){
+	            	datagridData._updatedRows=[];
+	            }
+	        	
+	        	//使用副本数据
+	        	rowData=$.extend(false, {}, rowData);
+	        	datagrid.datagrid('endEdit', editIndex);
+	             
+				var dataRow={originalRow:originalRow,rowData:rowData};
+				
+				//若原始数据数组中不存在这条数据
+				if(checkedUpdateRows(datagridData._updatedRows,dataRow)){
+					//删除数据没有变化的字段，只保留有数据变化的字段
+					for(var i in dataRow.rowData){
+						if(dataRow.originalRow[i]==dataRow.rowData[i]){
+							delete dataRow.rowData[i];
+						}else if(dataRow.originalRow[i]==dataRow.rowData[i]+".0"){
+							delete dataRow.rowData[i];
+						}
+					}
+					if(!$.isEmptyObject(dataRow.rowData)){
+						datagridData._updatedRows.push(dataRow);
+					}
+				}
+	        },
 	        pageSize:20,
 	        pageList: [20,50,100,200],
 	        loadFilter: function(result){
@@ -44,6 +315,9 @@ define(function(require,exports,module){
 	    		}
 	    	},
 	        onLoadSuccess: function(result){
+	        	//清空缓存
+	        	clearCacheData();
+	        	
 	        	$("#sql_tabs").tabs("select",'列表展示');
 	        	var layout=['list','sep','first','prev','sep',"links",'sep','next','last','sep','refresh','sep','manual'];
 	        	
@@ -59,6 +333,43 @@ define(function(require,exports,module){
 	        	}
 	        	
 	        	datagrid.datagrid('getPager').pagination({
+	        		buttons:[
+	    			    {
+		    				iconCls:'icon-plus',
+		    				handler:function(){
+		    					var rowIndex=datagrid.datagrid('getRows').length;
+		    					datagrid.datagrid('appendRow',{});
+		    					datagrid.datagrid('selectRow', rowIndex);
+		    				}
+	    				},
+	    				{
+	    					iconCls:'icon-minus',
+		    				handler:function(){
+		    					var row=datagrid.datagrid('getSelected');
+		    					if(row!=null){
+		    						var index=datagrid.datagrid('getRowIndex',row);
+		    						if(typeof index!="undefined"){
+		    							datagrid.datagrid('deleteRow',index);
+		    						}
+		    					}
+		    				}
+	    				},{
+		    				iconCls:'icon-ok',
+		    				handler:function(){
+		    					datagrid.datagrid('endEdit', editIndex);
+		    					editIndex = undefined;
+		    					var _updatedRows = datagrid.data("datagrid")._updatedRows||[];
+		    					var insertArray=datagrid.datagrid("getChanges","inserted");
+		    					var deleteArray=datagrid.datagrid("getChanges","deleted");
+		    					executeSqlBatch({updated:_updatedRows,insertd:insertArray,deleted:deleteArray},function(result){
+		    						var tip=getBatchResult(result);
+		    						message.show(tip.type,tip.message);
+		    						//清空缓存
+		    						clearCacheData();
+		    					});
+		    				}
+	    				}
+	    			],
 	        		layout:layout,
 	        		beforePageText:'跳转：第',
 	        		afterPageText:'页',
@@ -102,7 +413,7 @@ define(function(require,exports,module){
 				
 				var fields=[];
 				for(var field in result.data.rows[0]){
-					fields.push({field:field,title:field,width:100});
+					fields.push({field:field,title:field,width:100,editor:'textbox',formatter:function(val){return $.isEmptyObject(val)?"<i>null<i>":val;}});
 				}
 				var datagrid=that.find(".table_datagrid");
 				datagrid.datagrid({
@@ -110,6 +421,7 @@ define(function(require,exports,module){
 			        height:$(that).height(),
 			        remoteSort:false,
 			        loadMsg:"正在加载，请稍后...",
+			        //loadMsg:"",
 			        pageNumber:pageIndex,
 			        pageSize:pageSize,
 			        pageList: [pageSize],
@@ -148,11 +460,30 @@ define(function(require,exports,module){
 		});
 	};
 	
-	//执行SQL
+	//执行更新SQL操作
 	function executeSqlUpdate(sql,callback){
 		$.post("sql/executeSqlUpdate.action",{"sql":sql},function(result){
 			callback&&callback(result);
 		});
+	}
+	
+	//执行批量更新SQL操作
+	function executeSqlBatch(option,callback){
+		var treeTable=$('.dataBaseTree').tree("getSelected");
+		var sqls=[];
+		var updateSql=getUpdateSqls(option.updated,treeTable.name);
+		var insertSql=getinsertSqls(option.insertd,treeTable.name);
+		var deleteSql=getdeleteSqls(option.deleted,treeTable.name);
+		sqls.push(updateSql);
+		sqls.push(insertSql);
+		sqls.push(deleteSql);
+		//var sql=updateSql+insertSql+deleteSql;
+		var sql=sqls.join(";");
+		if(sql!=""){
+			$.post("sql/executeSqlBatch.action",{"sql":sql},function(result){
+				callback&&callback(result);
+			});
+		}
 	}
 	
 	//创建表
