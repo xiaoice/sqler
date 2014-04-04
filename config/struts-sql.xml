@@ -37,6 +37,10 @@
 		<action name="executeSqlUpdate" class="sqlAction" method="executeSqlUpdate">
 			<result name="json" type="json"><param name="root">ajaxUtil</param></result>
 		</action>
+		<!-- 批量执行Sql更新语句 -->
+		<action name="executeSqlBatch" class="sqlAction" method="executeSqlBatch">
+			<result name="json" type="json"><param name="root">ajaxUtil</param></result>
+		</action>
 		<!-- 执行Sql查询语句 -->
 		<action name="executeSqlQuery" class="sqlAction" method="executeSqlQuery">
 			<result name="json" type="json"><param name="root">ajaxUtil</param></result>
