@@ -48,9 +48,9 @@ public class SqlAction extends AjaxAction {
 				setSessionProperty("jdbc", jdbc);
 			}else{
 				jdbc = (JdbcDto) getSessionProperty("jdbc");
-				if(jdbc==null){
+				/*if(jdbc==null){
 					jdbc=getJdbcFromCookie();
-				}
+				}*/
 				if(StringUtils.isNotBlank(database)){
 					jdbc.setDatabase(database);
 					setSessionProperty("jdbc", jdbc);
