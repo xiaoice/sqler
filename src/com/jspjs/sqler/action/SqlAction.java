@@ -162,7 +162,10 @@ public class SqlAction extends AjaxAction {
 			return ajaxUtil.setSuccess(j);
 		}catch (SQLException e) {
 			e.printStackTrace();
-			return ajaxUtil.setFail(e.getMessage());
+			JSONObject j=new JSONObject();
+			j.accumulate("rows", new String[]{});
+			j.accumulate("total", 0);
+			return ajaxUtil.setFail(e.getMessage(),j);
 		}finally{
 			mySqlConnection.closeConnection(conn);
 		}
