@@ -19,7 +19,6 @@ import org.springframework.stereotype.Controller;
 import com.jspjs.framework.ajax.AjaxAction;
 import com.jspjs.sqler.dto.JdbcDto;
 import com.jspjs.sqler.service.MySqlConnection;
-import com.opensymphony.xwork2.ActionContext;
 
 @Controller("sqlAction")
 public class SqlAction extends AjaxAction {
@@ -164,7 +163,7 @@ public class SqlAction extends AjaxAction {
 			e.printStackTrace();
 			JSONObject j=new JSONObject();
 			j.accumulate("rows", new String[]{});
-			j.accumulate("total", 0);
+			j.accumulate("total", -1);
 			return ajaxUtil.setFail(e.getMessage(),j);
 		}finally{
 			mySqlConnection.closeConnection(conn);
