@@ -133,7 +133,7 @@ public class MySqlConnection extends SqlConnection{
 			for (int i = 0; i < columns.length; i++) {
 				String key=columns[i], value=resultSet.getString(columns[i]);
 				if(value==null){
-					jo.accumulate(key,"");
+					jo.accumulate(key,null);
 				}else{
 					jo.accumulate(key,value);
 				}
