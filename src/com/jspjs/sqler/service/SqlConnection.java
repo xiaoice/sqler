@@ -22,7 +22,7 @@ public class SqlConnection {
 	//关闭JDBC连接
 	public void closeConnection(Connection conn){
 		try {
-			if(!conn.isClosed()){
+			if(conn!=null&&!conn.isClosed()){
 				conn.close();
 			}
 		} catch (SQLException e) {
