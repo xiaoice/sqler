@@ -101,9 +101,10 @@ define(function(require,exports,module){
 			//组合set字段
 			for(var field in rowData){
 				var value=rowData[field];
-				if(value!=""){
-					value="'"+value+"'";
-					fields.push(field+"="+value);
+				if(typeof value =="object" && $.isEmptyObject(value)){
+					fields.push(" "+field+"= null");
+				}else{
+					fields.push(" "+field+"='"+value+"'");
 				}
 			}
 			
@@ -114,8 +115,8 @@ define(function(require,exports,module){
 				if(typeof value =="object" && $.isEmptyObject(value)){
 					wheres.push(" "+field+" is null");
 				}
-				else if(value!=null){
-					wheres.push(" "+field+" ='"+value+"'");
+				else{
+					wheres.push(" "+field+"='"+value+"'");
 				}
 			}
 			
