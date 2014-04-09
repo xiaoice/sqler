@@ -20,7 +20,7 @@
 	<div region="north" class="menu_tool">
 	    <a id="menu_top_file" class="easyui-menubutton" data-options="menu:'#menu_down_file'">文件</a>
 	    <a id="menu_top_tool" class="easyui-menubutton">工具</a>
-	    <a id="menu_top_help" class="easyui-menubutton">帮助</a>
+	    <a id="menu_top_help" class="easyui-menubutton" data-options="menu:'#menu_down_help'">帮助</a>
 	</div>
 	
 	<!-- <div region="east" title="数据库" split="true" style="width:180px;"></div> -->
@@ -41,7 +41,7 @@
 								<option value="executeSqlUpdate">更新executeUpdate</option>
 							</select>
 						</div>
-			    		<textarea id="sql_text" class="sql_text" rows="0" cols="0">select * from um_usercourse</textarea>
+			    		<textarea id="sql_text" class="sql_text" rows="0" cols="0"></textarea>
 			    	</div>
 					<div region="center" border="false" class="exe_result_list">
 						<div class="msg_tip"></div>
@@ -61,7 +61,12 @@
 		    <div class="undefined">导入SQL文件</div>
 		    <div class="undefined">导出Excel</div>
 		    <div class="menu-sep"></div>
-		    <div>注销</div>
+		    <div id="menu_down_loginout" data-options="iconCls:'icon-signout'">注销</div>
+	    </div>
+	    
+		<!-- 菜单-帮助 -->
+		<div id="menu_down_help">
+		    <div data-options="iconCls:'icon-info-sign'" id="menu_down_about">关于</div>
 	    </div>
 	    
 		<!-- 菜单-文件 -创建新连接按钮 -->

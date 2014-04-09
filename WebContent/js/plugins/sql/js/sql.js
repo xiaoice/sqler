@@ -110,15 +110,18 @@ define(function(require,exports,module){
 			//组合where条件字段
 			for(var field in originalRow){
 				var value=originalRow[field];
-				if(value!=null){
-					value="'"+value+"'";
-					wheres.push(" "+field+"="+value);
+				//若为空对象，则说明数据是null
+				if(typeof value =="object" && $.isEmptyObject(value)){
+					wheres.push(" "+field+" is null");
+				}
+				else if(value!=null){
+					wheres.push(" "+field+" ='"+value+"'");
 				}
 			}
 			
 			var sql=" update "+table+" set "+fields.join(" , ");
 			if(wheres.length>0){
-				sql+=" where "+wheres.join(" and ")+"limit 1";
+				sql+=" where "+wheres.join(" and ")+" limit 1";
 			}
 			sqls.push(sql);
 		}
@@ -132,10 +135,10 @@ define(function(require,exports,module){
 			var field=array[i],fields=[],wheres=[];
 			for(var key in field){
 				var value=field[key];
-				if(value!=null){
-					value="'"+value+"'";
+				if(value!=null&&!$.isEmptyObject(value)){
+					value=" '"+value+"'";
 				}else{
-					value=null;
+					value=" null";
 				}
 				
 				fields.push(key);
@@ -155,13 +158,16 @@ define(function(require,exports,module){
 			var field=array[i],wheres=[];
 			for(var key in field){
 				var value=field[key];
-				if(value!=null){
-					value="'"+value+"'";
-					wheres.push(key+"="+value);
+				//若为空对象，则说明数据是null
+				if(typeof value =="object" && $.isEmptyObject(value)){
+					wheres.push(" "+key+" is null");
+				}
+				else if(value!=null){
+					wheres.push(" "+key+" ='"+value+"'");
 				}
 			}
 			
-			var sql=" delete from "+table+" where "+wheres.join(" and ")+"limit 1";
+			var sql=" delete from "+table+" where "+wheres.join(" and ")+" limit 1";
 			sqls.push(sql);
 		}
 		return sqls.join(";");
@@ -169,11 +175,10 @@ define(function(require,exports,module){
 	
 	//获取批量操作结果
 	function getBatchResult(result){
-		var tip={message:"",type:"info"};
+		var tip={message:"",type:"info"},errors=[],oks=[];
 		if(result.recode==1){
 			var array=result.data.result;
 			if($.isArray(array)){
-				var errors=[],oks=[];
 				for(var i=0,j=array.length;i<j;i++){
 					if(array[i]==1){
 						oks.push(array[i]);
@@ -197,6 +202,8 @@ define(function(require,exports,module){
 		}else{
 			tip.message=result.message;
 		}
+		tip.oks=oks;
+		tip.errors=errors;
 		return tip;
 	}
 	
@@ -209,7 +216,7 @@ define(function(require,exports,module){
 		executeTable($(".exe_result_list"),sql,1,100);
 	});
 	
-	//验证数据是否可以被添加缓存数组  rows 原始数据数组，rowData新数据
+	//验证数据是否可以被添加缓存数组  其中参数rows会被改变数值  【rows 原始数据数组，rowData新数据】
 	function checkedUpdateRows(rows,dataRow){
 		if($.isEmptyObject(dataRow.rowData)){
 			return false;
@@ -217,8 +224,9 @@ define(function(require,exports,module){
 		if(rows.length==0){
 			return true;
 		}
-		for(var i=0,j=rows.length;i<j;i++){
-			var row=rows[i];
+		var _rows=$.extend([],rows);
+		for(var i=0,j=_rows.length;i<j;i++){
+			var row=_rows[i];
 			//验证2个对象是否相同
 			if(equals(row.originalRow,dataRow.originalRow)){
 				//时间类型会自动去掉后面的【.0】,追加【.0】验证数据是不是一样
@@ -251,13 +259,17 @@ define(function(require,exports,module){
 			if(/time/ig.test(field.editor)){
 				field.formatter=function(val,row){
 					if(typeof val!="undefined"){
-						return val.replace(".0","");
+						return $.isEmptyObject(val)?"<i>null<i>":val.replace(".0","");
 					}
 					return val;
 				};
+				field.width=140;
 			}else{
 				field.formatter=function(val,row){
-					return $.isEmptyObject(val)?"<i>null<i>":val;
+					if(typeof val=="object"){
+						return $.isEmptyObject(val)?"<i>null<i>":val;
+					}
+					return val;
 				};
 			}
 		}
@@ -308,6 +320,11 @@ define(function(require,exports,module){
 	        pageSize:20,
 	        pageList: [20,50,100,200],
 	        loadFilter: function(result){
+	        	if(result.recode==0){
+	        		that.find(".msg_tip").html("<div class=\"no-result\">系统错误，原因："+result.message+"</div>");
+	        	}else{
+	        		that.find(".msg_tip").html("");
+	        	}
 	    		if (result.data){
 	    			return result.data;
 	    		} else {
@@ -363,9 +380,14 @@ define(function(require,exports,module){
 		    					var deleteArray=datagrid.datagrid("getChanges","deleted");
 		    					executeSqlBatch({updated:_updatedRows,insertd:insertArray,deleted:deleteArray},function(result){
 		    						var tip=getBatchResult(result);
-		    						message.show(tip.type,tip.message);
-		    						//清空缓存
-		    						clearCacheData();
+		    						if(result.recode==1){
+	    								message.show(tip.type,tip.message);
+	    								//清空缓存
+	    								clearCacheData();
+	    								datagrid.datagrid("reload");
+		    						}else{
+		    							message.error(tip.message);
+		    						}
 		    					});
 		    				}
 	    				}
@@ -437,6 +459,7 @@ define(function(require,exports,module){
 			        onLoadSuccess: function(result){
 			        	var layout=['first','prev','sep',"links",'sep','next','last','sep','refresh','sep','manual'];
 			        	var displayMsg="当前第[{from}-{to}]条 共[{total}]条";
+			        	
 			        	if(result.total==0){
 			        		layout=['refresh'];
 			        		return that.find(".result_table").html("<div class=\"no-result\">表中没有数据！</div>");
@@ -522,4 +545,6 @@ define(function(require,exports,module){
 	module.exports.executeTable=executeTable;
 	module.exports.selectTable=selectTable;
 	module.exports.executeSqlUpdate=executeSqlUpdate;
+	module.exports.checkedUpdateRows=checkedUpdateRows;
+	module.exports.resize=function(){datagrid.datagrid("resize",{})};
 });

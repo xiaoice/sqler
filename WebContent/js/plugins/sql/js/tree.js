@@ -8,8 +8,7 @@ define(function(require,exports,module){
 	var sql=require("sql"),login=require("login"),util=require("util"),message=util.message;
 	var $document=$(document),databaseSelect=$("#database_select"),target=$('.dataBaseTree');
 	var editIndex = undefined; //当前编辑的行索引
-	var editRows={},delRows={};//修改的行、删除的行
-	var dialog=undefined,datagrid=undefined,dialogUtil={};
+	var dialog=undefined,datagrid=undefined,dialogUtil={},loginUtil={};
 	module.exports.init=function(callback){
 		dialogInit();
 		//绑定数据到到左侧树上
@@ -55,6 +54,9 @@ define(function(require,exports,module){
 			},
 			onBeforeExpand:function(node){
 				target.tree("select", node.target);
+				if(node.iconCls==="icon-desktop"){
+					return !!loginUtil[node.name];
+				}
 			},
 			onBeforeSelect:function(node){
 				//$("#input_con_database").val(node.text);
@@ -62,6 +64,8 @@ define(function(require,exports,module){
 					login.loginDatabase(function(){
 						message.ok("成功切换到数据库【"+node.text+"】",0.5);
 						databaseSelect.html(node.text);
+						loginUtil[node.name]=true;
+						target.tree("expand",node.target);
 					});
 				}else if(node.type=="table"){
 					$("#database_select").html(node.id.split("—")[0]);
@@ -83,6 +87,12 @@ define(function(require,exports,module){
 						});
 					}
 				}
+			},formatter:function(node){
+				if(node.iconCls==="icon-th-list"||node.iconCls==="icon-key"){
+					var Null=node.text.indexOf(", Nullable")!==-1?"":", not null";
+					node.text=node.text.replace(", Nullable","")+Null;
+				}
+				return node.text;
 			}
 		});
 		
@@ -147,6 +157,7 @@ define(function(require,exports,module){
 					handler:function(){
 						dialogUtil.dialog_create_panel_sql.hide();
 						dialogUtil.dialog_create_panel_sql_close.hide();
+						dialogUtil.dialog_create.find(".dialog-toolbar td:lt(4)").show();
 					}
 				},{
 					id:"dialog_create_tablename",
@@ -178,6 +189,8 @@ define(function(require,exports,module){
 			onClose:function(){
 				$("#dialog_create_tablename_input").val("");
 				dialogUtil.datagrid_create.datagrid('loadData', { total: 0, rows: []});
+				dialogUtil.dialog_create.find(".dialog-toolbar td:lt(4)").show();
+				reloadTable();
 			}
 		});
 		
@@ -197,21 +210,47 @@ define(function(require,exports,module){
 			toolbar:[{
 				text:'<i class="icon-plus"></i> 增加',
 				handler:appendRow
-			},'-',{
-				text:'<i class="icon-trash"></i> 删除',
-				handler:deleteRow
-			}
+				},'-',{
+					text:'<i class="icon-trash"></i> 删除',
+					handler:deleteRow
+				},'-',{
+					text:'<i class="icon-eye-close"></i> 关闭预览',
+					id:"dialog_edit_panel_sql_close",
+					group:"dialog_edit_group",
+					handler:function(){
+						dialogUtil.dialog_edit_panel_sql.hide();
+						dialogUtil.dialog_edit_panel_sql_close.hide();
+						dialogUtil.dialog_edit.find(".dialog-toolbar td:lt(4)").show();
+					}
+				}
 			],
 			buttons:[{
 				text:'<i class="icon-eye-open"></i> 预览Sql',
-				handler:preview
+				handler:alterTablePreview
 			},{
 				text:'<i class="icon-save"></i> 保存',
-				handler:preview
+				handler:editTableSave
 			},{
 				text:'<i class="icon-remove"></i> 关闭',
 				handler:function(){dialogUtil.dialog_edit.window('close');}
-			}]
+			}],
+			onBeforeOpen:function(){
+				if(dialogUtil.dialog_edit_panel_sql==undefined){
+					dialogUtil.dialog_edit.find(".panel:first").css("position","relative").append("<div class=\"dialog_edit_panel_sql\" readonly=\"true\"></div>");
+					dialogUtil.dialog_edit_panel_sql=dialogUtil.dialog_edit.find(".dialog_edit_panel_sql");
+					dialogUtil.dialog_edit_panel_sql_close=$("#dialog_edit_panel_sql_close");
+				}else{
+					dialogUtil.dialog_edit_panel_sql.hide();
+				}
+				dialogUtil.dialog_edit_panel_sql_close.hide();
+			},
+			onClose:function(){
+				//清空更新数据缓存
+		    	datagrid.data("datagrid")._updatedRows=[];
+				datagrid.datagrid("rejectChanges");
+				dialogUtil.dialog_edit.find(".dialog-toolbar td:lt(4)").show();
+				reloadTable();
+			}
 		});
 		
 		//初始化【查看表结构】弹出框
@@ -234,28 +273,16 @@ define(function(require,exports,module){
 		});
 	}
 	
-	//重写扩展输入框-默认值
-    $.extend($.fn.datagrid.defaults.editors, {
-    	textDefault: {
-	        init: function(container, options){
-		        var input = $('<input type="text" class="datagrid-editable-input"/>').width("100%").css("border-color","#805C1E").appendTo(container);
-		        return input.wrap("<div class=\"datagrid-editable-input-div\"></div>").validatebox(options);
-	        },
-	        destroy: function(target){
-	        	$(target).remove();
-	        },
-	        getValue: function(target){
-	        	var value=$(target).val();
-	        	return $.isEmptyObject(value)?"":value;
-	        },
-	        setValue: function(target, value){
-	        	$(target).val($.isEmptyObject(value)?"":value);
-	        },
-	        resize: function(target, width){
-		        $(target)._outerWidth(width);
-		    }
-        }
-    });
+	//根据原始数据删除数组中指定的数据
+	function deleteByOriginalRow(rows,originalRow){
+		var _rows=$.extend([],rows);
+		for(var i=0,j=_rows.length;i<j;i++){
+			var dataRow=_rows[i];
+			if(equals(dataRow.originalRow,originalRow)){
+				rows.splice(i,1);
+			}
+		}
+	}
 	
 	//格式化工具
 	var formatUtil={
@@ -277,8 +304,8 @@ define(function(require,exports,module){
 		},
 		//格式化空对象
 		formatEmpty:function(value){
-			if($.isEmptyObject(value)){
-				return "";
+			if(typeof value =="object" && $.isEmptyObject(value)){
+				return '';
 			}else{
 				return value;
 			}
@@ -289,7 +316,7 @@ define(function(require,exports,module){
 	var editorUtil={
 		//字段名
 		Field:{
-			type:'textDefault',
+			type:'textbox',
             options:{
             	required:true,
             	missingMessage:"请输入字段名称"
@@ -304,23 +331,23 @@ define(function(require,exports,module){
         		height:24,
          		panelHeight:"auto",
         		data: [
-        		    {value: 'INT',text: 'INT'},
-        		    {value: 'FLOAT',text: 'FLOAT'},
-        		    {value: 'DOUBLE',text: 'DOUBLE'},
-        		    {value: 'BIT',text: 'BIT'},
-        		    {value: 'VARCHAR()',text: 'VARCHAR()'},
-        		    {value: 'CHAR()',text: 'CHAR()'},
-        		    {value: 'TEXT',text: 'TEXT'},
-        		    {value: 'BLOB',text: 'BLOB'},
-        		    {value: 'DATE',text: 'DATE'},
-        		    {value: 'DATETIME',text: 'DATETIME'},
+        		    {value: 'int',text: 'int'},
+        		    {value: 'varchar(32)',text: 'varchar(32)'},
+        		    {value: 'text',text: 'text'},
+        		    {value: 'blob',text: 'blob'},
+        		    {value: 'timestamp',text: 'timestamp'},
+        		    {value: 'datetime',text: 'datetime'},
+        		    {value: 'char(32)',text: 'char(32)'},
+        		    {value: 'float',text: 'float'},
+        		    {value: 'double',text: 'double'},
+        		    {value: 'bit',text: 'bit'}
         		],
                 required:true,
                 missingMessage:"请输入字段类型"
             }
 		},
 		//键约束
-		Key:{
+		Keys:{
 			type:'combobox',
             options:{
                 valueField: 'value',
@@ -334,10 +361,20 @@ define(function(require,exports,module){
         		]
             }
 		},
+		//主键
+		Key:{
+			type:'checkbox',
+			options:{on: "PRI",off:""}
+		},
 		//复选框
-		checkbox:{
-			type:'checkbox',    
-			options:{on: "<i class=\"icon-ok\"></i>",off:""}
+		Null:{
+			type:'checkbox',
+			options:{on: "YES",off:"NO"}
+		},
+		//是否自增
+		Extra:{
+			type:'checkbox',
+			options:{on: "auto_increment",off:""}
 		},
 		//允许为null
 		comboboxNull:{
@@ -383,9 +420,10 @@ define(function(require,exports,module){
 		if(endEditing()){
 			var rowCount = datagrid.datagrid('getRows').length;
 			datagrid.datagrid('endEdit', editIndex);
-			datagrid.datagrid("appendRow", {Field:"",Type:"",Extra:"",Null:"",Collation:"",Key:"",Privileges:"",Default:"",Comment:""});
+			datagrid.datagrid("appendRow", {Field:"",Type:"",Extra:"",Null:"YES",Collation:"",Key:"",Privileges:"",Default:"",Comment:""});
 			datagrid.datagrid('selectRow', rowCount).datagrid('beginEdit', rowCount);
 			editIndex=rowCount;
+			dialogUtil.dialog_edit.find(".panel-body").scrollTop(9999);
 		}
 	}
 	
@@ -394,13 +432,12 @@ define(function(require,exports,module){
 		var rowData=datagrid.datagrid('getSelected');
 		if(rowData!=null){
 			datagrid.datagrid('deleteRow', datagrid.datagrid('getRowIndex',rowData));
-			delRows[rowData.Field]=rowData;
 		}else{
 			message.error("请先选中要删除的行");
 		}
 	}
 	
-	//验证创建数据表
+	//数据表-验证sql
 	function createTableValidator(){
 		datagrid.datagrid('unselectAll');
 		var tablename=$("#dialog_create_tablename_input").val();
@@ -418,7 +455,7 @@ define(function(require,exports,module){
 		return false;
 	}
 	
-	//创建数据表生成的SQL
+	//数据表-生成SQL
 	function createTableSql(){
 		var rows = datagrid.datagrid('getChanges');
 		var tablename=$("#dialog_create_tablename_input").val();
@@ -427,23 +464,23 @@ define(function(require,exports,module){
 			var row=rows[i];
 			var Field="\r\t<span class=\"Field\">"+row.Field+"</span>";
 			var Type="<span class=\"Type\"> "+row.Type+"</span>";
-			var Null=row.Null=='<i class="icon-ok"></i>'?"":"<span class=\"Null\"> NOT NULL</span>";
-			var Extra=row.Extra=='<i class="icon-ok"></i>'?"<span class=\"Extra\"> AUTO_INCREMENT</span>":"";
+			var Null=row.Null=='YES'?"":"<span class=\"Null\"> NOT NULL</span>";
+			var Extra=row.Extra=='auto_increment'?"<span class=\"Extra\"> AUTO_INCREMENT</span>":"";
 			var Default="<span class=\"Default\"> DEFAULT</span> '"+row.Default+"'";
 			var Comment="<span class=\"Comment\"> COMMENT</span> '"+row.Comment+"'";
 			var sql=Field+Type;
-			if(row.Key=="<i class=\"icon-ok\"></i>"){
+			
+			if(row.Key=="PRI"){
 				primaryKeys.push(row.Field);
 			}else{
 				sql+=Null;
 			}
 			
-			if(row.Extra==""&&row.Default!=""){
-				sql+=Default;
-			}else if(Extra!=""){
-				sql+=Extra;
+			if(row.Extra!=""||$.isEmptyObject(row.Default)||row.Default==""){
+				Default="";
 			}
-			sql+=row.Comment!=""?Comment:"";
+			
+			sql+=Extra+Default+row.Comment!=""?Comment:"";
 			sqls.push(sql);
 		}
 		if(primaryKeys.length>0){
@@ -451,25 +488,27 @@ define(function(require,exports,module){
 		}
 		return "<span class=\"Type\">CREATE TABLE </span>"+tablename+"(<br>"+sqls.join(",<br>")+"<br><span>\r)<span>";
 	}
-	//预览SQL
+	
+	//新建表-预览SQL
 	function createTablePreview(){
 		if(createTableValidator()){
 			var sql_table = createTableSql();
 			dialogUtil.dialog_create_panel_sql.html(sql_table).show();
 			dialogUtil.dialog_create_panel_sql_close.show();
+			dialogUtil.dialog_create.find(".dialog-toolbar td:lt(4)").hide();
 		}
 	}
 	
-	//保存数据表
+	//新建表-保存数据表
 	function createTableSave(){
 		if(createTableValidator()){
 			var sql_table = createTableSql(),_sql=$(sql_table).text();
 			sql.executeSqlUpdate(_sql,function(result){
 				var tablename=$("#dialog_create_tablename_input").val();
 				if(result.recode==1){
-					reloadTable();
-					message.ok("创建表【"+tablename+"】成功！");
-					dialogUtil.dialog_create.window('close');
+					message.ok("创建表【"+tablename+"】成功！",function(){
+						dialogUtil.dialog_create.window('close');
+					});
 				}else{
 					dialogUtil.dialog_create_panel_sql.html(result.message).show();
 					dialogUtil.dialog_create_panel_sql_close.show();
@@ -479,8 +518,161 @@ define(function(require,exports,module){
 		}
 	}
 	
-	function preview(){
-		message.error("暂时没有开发！");
+	//修改表-验证sql
+	function editTableValidator(){
+		datagrid.datagrid('unselectAll');
+		if(datagrid.datagrid('getRows').length==0){
+			message.error("无法保存，请最少添加一行数据列！");
+		}
+		else if(!endEditing()){
+			message.error("数据列验证未通过，请检查并修改！");
+		}else{
+			return true;
+		}
+		return false;
+	}
+	
+	//修改表-生成SQL
+	function alterTableSql(){
+		var tablename=target.tree("getSelected").name;
+		var deleteArray=datagrid.datagrid("getChanges","deleted");
+		var updateArray=datagrid.datagrid("getChanges","updated");
+		var _updatedRows = datagrid.data("datagrid")._updatedRows||[];
+		var insertArray=datagrid.datagrid("getChanges","inserted");
+		var deleteFields=[],insertFields=[],updateFields=[],originalFields=[],sqls=[];
+		
+		//原始数据的字段集合
+    	var originalRows=datagrid.data("datagrid").originalRows;
+    	for(var i=0,j=originalRows.length;i<j;i++){
+    		var Field=originalRows[i].Field;
+    		if(originalFields.indexOf(Field)==-1){
+    			originalFields.push(Field);
+			}
+    	}
+		
+		//获取预【delete】的字段集合
+		for(var i=0,j=deleteArray.length;i<j;i++){
+			var Field=deleteArray[i].Field;
+			if(originalFields.indexOf(Field)!=-1||deleteFields.indexOf(Field)==-1){
+				deleteFields.push(Field);
+			}
+		}
+		
+		//获取预【insert】的字段集合
+		for(var i=0,j=insertArray.length;i<j;i++){
+			var Field=insertArray[i].Field;
+			if(insertFields.indexOf(Field)==-1){
+				insertFields.push(Field);
+			}
+		}
+		
+		//获取预【update】的字段集合
+		for(var i=0,j=_updatedRows.length;i<j;i++){
+			var Field=_updatedRows[i].originalRow.Field;
+			if(updateFields.indexOf(Field)==-1){
+				updateFields.push(Field);
+			}
+		}
+		
+		//获取【delete】的sql
+		for(var i=0,j=deleteArray.length;i<j;i++){
+			var row=deleteArray[i];
+			var Field="<span class=\"Field\"> "+row.Field+"</span>";
+			
+			//若原始数据存在这个字段，则允许删除
+			if(originalFields.indexOf(row.Field)!=-1){
+				sqls.push("DROP COLUMN"+Field);
+			}
+		}
+		
+		//获取【insert】的sql
+		for(var i=0,j=insertArray.length;i<j;i++){
+			var row=insertArray[i];
+			var Field="<span class=\"Field\"> "+row.Field+"</span>";
+			var Type="<span class=\"Type\"> "+row.Type+"</span>";
+			var Null=row.Null=='YES'?"":"<span class=\"Null\"> NOT NULL</span>";
+			var Extra=row.Extra=='auto_increment'?"<span class=\"Extra\"> AUTO_INCREMENT</span>":"";
+			var Key=row.Key=='PRI'?"<span class=\"Key\"> PRIMARY KEY</span>":"";
+			var Default=row.Default==""?"":"<span class=\"Default\"> DEFAULT</span> '"+row.Default+"'";
+			var Comment=row.Comment==""?"":"<span class=\"Comment\"> COMMENT</span> '"+row.Comment+"'";
+			
+			//若字段为自增字段，则不显示【默认值】
+			if(Extra!=""||$.isEmptyObject(row.Default)){
+				Default="";
+			}
+			
+			//若原始数据不存在这个字段或者已经删除了这个字段
+			if((originalFields.indexOf(row.Field)==-1||deleteArray.indexOf(row.Field)!=-1)){
+				sqls.push("ADD COLUMN"+Field+Type+Null+Extra+Key+Default+Comment);
+			}
+		}
+		
+		//获取【update】的sql
+		for(var i=0,j=_updatedRows.length;i<j;i++){
+			//originalRow:原始数据，rowData:更新后的数据
+			var originalRow=_updatedRows[i].originalRow,row=_updatedRows[i].rowData;
+			if(equals(originalRow,row)||(deleteFields.indexOf(originalRow.Field)!=-1&&insertFields.indexOf(originalRow.Field)==-1)){
+				continue;
+			}
+			var originalField="<span class=\"Field\"> "+originalRow.Field+"</span>";
+			var Field="<span class=\"Field\"> "+row.Field+"</span>";
+			var Type="<span class=\"Type\"> "+row.Type+"</span>";
+			var Null=row.Null=='YES'?"":"<span class=\"Null\"> NOT NULL</span>";
+			var Extra=row.Extra=='auto_increment'?"<span class=\"Extra\"> AUTO_INCREMENT</span>":"";
+			var Key=row.Key=='PRI'?"<span class=\"Key\"> PRIMARY KEY</span>":"";
+			var Default=row.Default==""?"":"<span class=\"Default\"> DEFAULT</span> '"+row.Default+"'";
+			var Comment=row.Comment==""?"":"<span class=\"Comment\"> COMMENT</span> '"+row.Comment+"'";
+
+			//若字段为自增字段，则不显示【默认值】
+			if(Extra!=""||$.isEmptyObject(row.Default)){
+				Default="";
+			}
+			
+			//若未删除这个字段
+			if(deleteArray.indexOf(originalRow.Field)==-1){
+				sqls.push("CHANGE COLUMN"+originalField+Field+Type+Null+Extra+Key+Default+Comment);
+			}
+		}
+		if(sqls.length==0){
+			return "";
+		}
+		return "<span class=\"Type\">ALTER TABLE </span>"+tablename.toUpperCase()+" <br>"+sqls.join(",<br>")+"<span>\r;<span>";
+	}
+	
+	//修改表-预览SQL
+	function alterTablePreview(){
+		if(editTableValidator()){
+			var sql_table = alterTableSql();
+			dialogUtil.dialog_edit_panel_sql.html(sql_table).show();
+			dialogUtil.dialog_edit_panel_sql_close.show();
+			dialogUtil.dialog_edit.find(".dialog-toolbar td:lt(4)").hide();
+		}
+	}
+	
+	
+	//修改表-保存数据表
+	function editTableSave(){
+		if(editTableValidator()){
+			var sql_table = alterTableSql(),_sql=$(sql_table).text();
+			if(_sql==""){
+				return message.stop("无法执行空语句！");
+			}
+			sql.executeSqlUpdate(_sql,function(result){
+				var tablename=target.tree("getSelected").name;
+				if(result.recode==1){
+					message.ok("修改表【"+tablename+"】成功！",function(){
+						dialogUtil.dialog_edit.window('close');
+					});
+					//清空缓存
+					datagrid.data("datagrid")._updatedRows=[];
+					datagrid.datagrid("acceptChanges");
+				}else{
+					dialogUtil.dialog_edit_panel_sql.html("<span class=\"error\"> "+result.message+"</span>").show();
+					dialogUtil.dialog_edit_panel_sql_close.show();
+					message.error("修改表【"+tablename+"】失败！",2);
+				}
+			});
+		}
 	}
 	
 	//刷新数据库
@@ -543,17 +735,14 @@ define(function(require,exports,module){
 		        //{checkbox:true,width:32},
 		        {field:'Field',title:'字段名',width:150,editor:editorUtil.Field},
 		        {field:'Type',title:'字段类型',width:110,align:"center",editor:editorUtil.Type},
-		        {field:'Extra',title:'自增',width:100,align:"center",formatter:formatUtil.Extra,editor:editorUtil.checkbox},
-		        {field:'Null',title:'可为空',width:40,align:"center",formatter:formatUtil.Null,editor:editorUtil.checkbox},
+		        {field:'Extra',title:'自增',width:100,align:"center",formatter:formatUtil.Extra,editor:editorUtil.Extra},
+		        {field:'Null',title:'允许为空',width:60,align:"center",formatter:formatUtil.Null,editor:editorUtil.Null},
 		        {field:'Collation',title:'Collation',width:100,align:"center",hidden:true},
-		        {field:'Key',title:'主键',width:65,align:"center",formatter:formatUtil.Key,editor:editorUtil.checkbox},
+		        {field:'Key',title:'主键',width:65,align:"center",formatter:formatUtil.Key,editor:editorUtil.Key},
 		        {field:'Privileges',title:'权限',width:190,align:"center",hidden:true},
-		        {field:'Default',title:'默认值',width:100,align:"center",formatter:formatUtil.formatEmpty,editor:'textDefault'},
-		        {field:'Comment',title:'注释',width:108,editor:'textDefault'}
-	        ]],
-	        onAfterEdit:function(rowIndex, rowData, changes){
-	        	editRows[rowData.Field]=changes;
-	        }
+		        {field:'Default',title:'默认值',width:100,align:"center",formatter:formatUtil.formatEmpty,editor:'textbox'},
+		        {field:'Comment',title:'注释',width:108,formatter:formatUtil.formatEmpty,editor:'textComment'}
+	        ]]
 	    });
 		dialog.window("open");
 	});
@@ -574,20 +763,41 @@ define(function(require,exports,module){
 			singleSelect:true,
 			onClickRow: editRow,
 			columns:[[
-			          //{checkbox:true,width:32},
-			          {field:'Field',title:'字段名',width:150,editor:editorUtil.Field},
-			          {field:'Type',title:'字段类型',width:110,align:"center",editor:editorUtil.Type},
-			          {field:'Extra',title:'自增',width:100,align:"center",formatter:formatUtil.Extra,editor:editorUtil.checkbox},
-			          {field:'Null',title:'可空',width:40,align:"center",formatter:formatUtil.Null,editor:editorUtil.checkbox},
-			          {field:'Collation',title:'Collation',width:100,align:"center",hidden:true},
-			          {field:'Key',title:'主键',width:65,align:"center",formatter:formatUtil.Key,editor:editorUtil.checkbox},
-			          {field:'Privileges',title:'权限',width:190,align:"center",hidden:true},
-			          {field:'Default',title:'默认值',width:100,align:"center",formatter:formatUtil.formatEmpty,editor:'textDefault'},
-			          {field:'Comment',title:'注释',width:108,editor:'textDefault'}
-			          ]],
-			          onAfterEdit:function(rowIndex, rowData, changes){
-			        	  editRows[rowData.Field]=changes;
-			          }
+			    //{checkbox:true,width:32},
+				{field:'Field',title:'字段名',width:150,editor:editorUtil.Field},
+				{field:'Type',title:'字段类型',width:110,align:"center",editor:editorUtil.Type},
+				{field:'Extra',title:'自增',width:100,align:"center",formatter:formatUtil.Extra,editor:editorUtil.Extra},
+				{field:'Null',title:'允许为空',width:60,align:"center",formatter:formatUtil.Null,editor:editorUtil.Null},
+				{field:'Collation',title:'Collation',width:100,align:"center",hidden:true},
+				{field:'Key',title:'主键',width:65,align:"center",formatter:formatUtil.Key,editor:editorUtil.Key},
+				{field:'Privileges',title:'权限',width:190,align:"center",hidden:true},
+				{field:'Default',title:'默认值',width:100,align:"center",formatter:formatUtil.formatEmpty,editor:'textbox'},
+				{field:'Comment',title:'注释',width:108,formatter:formatUtil.formatEmpty,editor:'textComment'}
+			]],
+			onAfterEdit:function(rowIndex, rowData, changes){
+	        	var datagridData=datagrid.data("datagrid");
+	        	//原始数据row
+	        	var originalRow=datagridData.originalRows[rowIndex];
+	        	//若没有原始数据，则说明是新增操作
+	        	if(typeof originalRow=="undefined"){
+	        		return;
+	        	}
+	        	if(typeof datagridData._updatedRows=="undefined"){
+	            	datagridData._updatedRows=[];
+	            }
+	        	
+	        	//使用副本数据
+	        	rowData=$.extend(false, {}, rowData);
+	        	datagrid.datagrid('endEdit', editIndex);
+	             
+				var dataRow={originalRow:originalRow,rowData:rowData};
+				
+				if(!$.isEmptyObject(dataRow.rowData)){
+					//删除数组中某条原始数据
+					deleteByOriginalRow(datagridData._updatedRows,originalRow);
+					datagridData._updatedRows.push(dataRow);
+				}
+	        }
 		}).datagrid('loadData', data);
 		dialog.window("open");
 	});
@@ -617,7 +827,7 @@ define(function(require,exports,module){
 		        {field:'Key',title:'主键',width:40,align:"center",formatter:formatUtil.Key},
 		        {field:'Privileges',title:'权限',width:190,align:"center",formatter:formatUtil.formatEmpty},
 		        {field:'Default',title:'默认值',width:100,align:"center",formatter:formatUtil.formatEmpty},
-		        {field:'Comment',title:'注释',width:100}
+		        {field:'Comment',title:'注释',width:100,formatter:formatUtil.formatEmpty}
 	        ]]
 	    }).datagrid('loadData', data);
 		dialog.window("open");
@@ -698,8 +908,6 @@ define(function(require,exports,module){
 		$("#sql_text").val(sql.toUpperCase());
 		$("#sql_tabs").tabs("select",'命令提示行');
 	});
-	
-	
 	
 	module.exports.target=target;
 });

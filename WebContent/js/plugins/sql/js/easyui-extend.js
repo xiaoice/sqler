@@ -7,8 +7,28 @@
 define(function(require,exports,module){
 	 require("my97");
 	 exports.init=function(callback){
+		 
 	     //重写datagrid的编辑文本框
-	     $.extend($.fn.datagrid.defaults.editors, {  
+	     $.extend($.fn.datagrid.defaults.editors, {
+    	 textComment: {
+		        init: function(container, options){
+			        var input = $('<input type="text" class="datagrid-editable-input"/>').appendTo(container);
+			        return input.wrap("<div class=\"datagrid-editable-input-div\"></div>").validatebox(options);
+		        },
+		        destroy: function(target){
+		        	$(target).remove();
+		        },
+		        getValue: function(target){
+		        	var value=$(target).val();
+		        	return $.isEmptyObject(value)?"":value;
+		        },
+		        setValue: function(target, value){
+		        	$(target).val($.isEmptyObject(value)?"":value);
+		        },
+		        resize: function(target, width){
+			        $(target)._outerWidth(width);
+			    }
+	        },
 	     	textbox : {  
 	 	    	init: function(container, options){
 	 		        var input = $('<input type="text" class="datagrid-editable-input"/>').appendTo(container);
@@ -19,7 +39,7 @@ define(function(require,exports,module){
 	 	        },
 	 	        getValue: function(target){
 	 	        	var value=$(target).val();
-	 	        	return $.isEmptyObject(value)?"":value;
+	 	        	return $.isEmptyObject(value)?{}:value;
 	 	        },
 	 	        setValue: function(target, value){
 	 	        	$(target).val($.isEmptyObject(value)?"":value);
@@ -60,10 +80,11 @@ define(function(require,exports,module){
 	                 return input.datetimebox(options);
 	             },
 	             getValue: function(target){
-	                 return $(target).datetimebox('getValue');
+	            	 var value=$(target).datetimebox('getValue');
+			         return $.isEmptyObject(value)?"":value;
 	             },
 	             setValue: function(target, value){
-	                 $(target).datetimebox('setValue', value);
+	                 $(target).datetimebox('setValue', $.isEmptyObject(value)?"":value);
 	             },
 	             resize: function(target, width){
 	                 $(target).datetimebox('resize', width);
@@ -448,4 +469,18 @@ define(function(require,exports,module){
     	}
     	return true;
     };
+    
+    //重新isEmptyObject方法
+    jQuery.extend({
+    	isEmptyObject1:function(obj){
+    		if(typeof obj =="object"){
+    			 for (var i in obj) { 
+    				 return false; 
+			     }
+    			 return true;
+    		}
+    		return false;
+    	}
+    });
+    		
 })(jQuery);

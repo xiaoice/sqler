@@ -82,7 +82,7 @@ body{overflow: hidden;}
 .dialog_edit_table .combo{border:1px solid #fff;display: block;}
 .dialog_edit_table .datagrid-row-selected .datagrid-cell{background-color: #EAEAEA;height: 24px !important;}
 .dialog_edit_table .validatebox-invalid{background-color: #FFC8C8;border: 1px solid #AE0000 !important;background-image:none;}
-.dialog_edit_table .validatebox-text{height:22px; width: 100%;color:#000;background-color: #F8FFDA;border:1px solid #805C1E;}
+.dialog_edit_table .validatebox-text{height:22px; width: 100%;color:#000;background-color: #F8FFDA;border:1px solid #000;}
 .dialog_edit_table .validatebox-text:focus{background-color: #fff;}
 .dialog_edit_table .datagrid-editable-input-div{height: 24px;padding: 1px;text-align: center;background-color: #fff;}
 .dialog_edit_table .datagrid-editable-input-div .validatebox-text{width:100% !important;}
@@ -110,17 +110,19 @@ body{overflow: hidden;}
 
 .body_layout{display: none;}
 .tooltip{background-color: #FFC8C8 !important;border: 1px solid #AE0000 !important;}
-.dialog_create_tablename,.dialog_create_tablename:hover{text-align: right; width: 600px;display: block;color:#fff;text-decoration: none;}
-.dialog_create_tablename span{background-color: #fff;display: inline-block;}
-.dialog_create_tablename_input{border:1px solid #805C1E;background-color:#F8FFDA;margin:1px;border-radius: 3px;color:#333;width: 150px;}
-.dialog_create_panel_sql{position: absolute;top:0;left: 0;width:100%;height:100%;z-index: 10000;background-color: #fff;color:#aeaeae;padding:5px;overflow: auto;display: none;}
-.dialog_create_panel_sql .Field{padding:0 2px 0 20px;color:#aeaeae;}
-.dialog_create_panel_sql .Type{padding:0 2px;color:#4857C5; font-weight: bold;}
-.dialog_create_panel_sql .Null{padding:0 2px;color:#A4925F;}
-.dialog_create_panel_sql .Extra{padding:0 2px;color:#9F2081;}
-.dialog_create_panel_sql .Comment{padding:0 2px;color:#1BB132;}
-.dialog_create_panel_sql .Default{padding:0 2px;color:#8E7619;}
+.dialog_create_tablename,.dialog_create_tablename:hover,.dialog_edit_tablename,.dialog_edit_tablename:hover{text-align: right; width: 600px;display: block;color:#fff;text-decoration: none;}
+.dialog_create_tablename span,.dialog_edit_tablename span{background-color: #fff;display: inline-block;}
+.dialog_create_tablename_input,.dialog_edit_tablename_input{border:1px solid #805C1E;background-color:#F8FFDA;margin:1px;border-radius: 3px;color:#333;width: 150px;}
+.dialog_create_panel_sql,.dialog_edit_panel_sql{position: absolute;top:0;left: 0;width:100%;height:100%;z-index: 10000;background-color: #fff;color:#aeaeae;padding:5px;overflow: auto;display: none;}
+.dialog_create_panel_sql .Field,.dialog_edit_panel_sql .Field{padding:0 2px 0 5px;color:#1AB2AC;}
+.dialog_create_panel_sql .Type,.dialog_edit_panel_sql .Type{padding:0 2px;color:#4857C5; font-weight: bold;}
+.dialog_create_panel_sql .Null,.dialog_edit_panel_sql .Null{padding:0 2px;color:#A4925F;}
+.dialog_create_panel_sql .Extra,.dialog_edit_panel_sql .Extra{padding:0 2px;color:#9F2081;}
+.dialog_create_panel_sql .Comment,.dialog_edit_panel_sql .Comment{padding:0 2px;color:#1BB132;}
+.dialog_create_panel_sql .Default,.dialog_edit_panel_sql .Default{padding:0 2px;color:#8E7619;}
+.dialog_create_panel_sql .error,.dialog_edit_panel_sql .error{padding:0 2px;color:#E43030;}
 .dialog_create_panel_sql .Key{padding:0 2px 0 20px;color:#B53333;}
+.dialog_edit_panel_sql .Key{padding:0 2px;color:#B53333;}
 .window .messager-icon{display: none;}
 .messager_question{font-size: 14px;}
 .database_select{background-color: #155817;border: 1px solid #00EB2C;border-radius: 3px;color:#fff;margin-left: 5px;padding: 2px 5px;}
@@ -128,14 +130,10 @@ body{overflow: hidden;}
 
 /*重写easyui样式*/
 .window-proxy{border-radius:7px; background-color: rgba(5, 45, 164, 0.5) !important;filter:alpha(opacity=50); -moz-opacity:0.5;-khtml-opacity: 0.5; opacity:0.5;}
-.datagrid-editable .datagrid-editable-input{border-color:#C49A53 !important;}
-.datagrid-editable td input[type=text],.datagrid-editable td .combo{height: 24px !important;width:100%;background-color:#FFF4E1; border-color:#C49A53;}
-.datagrid-editable .numberbox-f{background-color: #EEFFEF !important;border-color:#B3F1AE !important;}
+.sql_table_data .datagrid-editable .datagrid-editable-input{border-color:#F4C87D !important;}
+.sql_table_data .datagrid-editable td input[type=text],.sql_table_data .datagrid-editable td .combo{height: 24px !important;width:100%;background-color:#FFF4E1; border-color:#C49A53;}
+.sql_table_data .datagrid-editable .numberbox-f{background-color: #EEFFEF !important;border-color:#B3F1AE !important;}
 
-/*datagrid编辑框样式*/
-.datagrid_editable_row_warp{position: absolute; top: 51px; left: 0; z-index: 1; margin-left:11px; height: 25px; width: auto;text-align: left;}
-.datagrid_editable_row_warp .button{background-color: #9CFB9E;cursor:pointer;border: 1px solid #167A05;border-radius: 3px;box-shadow: 1px 1px 0 #40C23F;color: #086700;font-size: 12px;padding: 3px 10px;margin-left: 15px;}
-.datagrid_editable_row_warp .button:hover{text-decoration:none;background-color: #00A204;border: 1px solid #14FF00;box-shadow: 1px 1px 0 #0D9D0B;color: #fff;}
-
+.datagrid-body .combo-arrow,.datagrid-body .combo-arrow-hover{background-color: transparent;}
 
 
