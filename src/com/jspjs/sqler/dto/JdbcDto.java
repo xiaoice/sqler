@@ -29,9 +29,9 @@ public class JdbcDto implements Serializable {
     
     public String getUrl(){
         if(StringUtils.isNotBlank(database)){
-        	return "jdbc:mysql://"+ip+":"+port+"/"+database+"?useUnicode=true&amp;allowMultiQueries=true&amp;characterEncoding="+chatset;
+        	return "jdbc:mysql://"+ip+":"+port+"/"+database+"?useUnicode=true&amp;allowMultiQueries=true&amp;characterEncoding="+chatset+"&zeroDateTimeBehavior=convertToNull";
         }else{
-        	return "jdbc:mysql://"+ip+":"+port+"?useUnicode=true&amp;allowMultiQueries=true&amp;characterEncoding="+chatset;
+        	return "jdbc:mysql://"+ip+":"+port+"?useUnicode=true&amp;allowMultiQueries=true&amp;characterEncoding="+chatset+"&zeroDateTimeBehavior=convertToNull";
         }
     }
 
