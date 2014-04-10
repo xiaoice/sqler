@@ -41,13 +41,26 @@ define(["easyui","util","menu","login","tree","sql","cookie","my97","easyui-exte
 	}
 	
 	//填充数据
-	function fillValue1(){
+	function fillValue2(){
 		$("#input_con_ip").val("localhost");
 		$("#input_con_port").val("3306");
 		//$("#input_con_database").val("test");
 		$("#input_con_user").val("root");
 		$("#input_con_password").val("root");
 	}
+	
+	//填充数据
+	function fillValue(){
+		$("#input_con_ip").val("10.4.14.186");
+		$("#input_con_port").val("3306");
+		//$("#input_con_database").val("test");
+		$("#input_con_user").val("usgTNrU3dJy6K");
+		$("#input_con_password").val("p4KMm9D6EcK64");
+	}
+	
+	$("#bt_login_temp").on("click",function(){
+		fillValue();
+	});
 	
 	$("#body_message_wrap_init").fadeOut("slow",function(){
 		login.init(getCookie);

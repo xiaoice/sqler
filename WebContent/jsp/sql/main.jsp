@@ -75,7 +75,7 @@
 			<table class="edit_table">
 				<tr>
 					<td class="tdLabel">数据库类型:</td>
-					<td>MYSQL</td>
+					<td>MYSQL<a id="bt_login_temp" class="easyui-linkbutton" style="color:red !important;">装载测试数据库</a></td>
 				</tr>
 				<tr>
 					<td class="tdLabel">IP:</td>
